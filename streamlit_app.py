@@ -87,8 +87,14 @@ def confidence_bar(conf):
         f'<span style="font-size:12px;color:#9ca3af;">{pct}%</span></div>'
     )
 
+def _hex_to_rgba(hex_color, alpha=1.0):
+    """Convert hex color to rgba string for Plotly compatibility."""
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
 def sparkline(data, color="#3b82f6"):
-    bar_colors = [color if i == len(data) - 1 else color + "80" for i in range(len(data))]
+    bar_colors = [_hex_to_rgba(color) if i == len(data) - 1 else _hex_to_rgba(color, 0.5) for i in range(len(data))]
     fig = go.Figure()
     fig.add_trace(go.Bar(x=list(range(len(data))), y=data, marker_color=bar_colors))
     fig.update_layout(
