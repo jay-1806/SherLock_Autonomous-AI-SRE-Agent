@@ -27,7 +27,7 @@ Modern production environments generate thousands of alerts daily. SRE teams are
 
 ## 🖥️ Live Demo
 
-> **Try it now →** [**SherLock Streamlit Dashboard**](https://jay-1806-sherlock-autonomous-ai-sre-ag-streamlit-app-1dkptw.streamlit.app)
+> **Try it now →** [**SherLock Streamlit Dashboard**](https://sherlockautonomous-ai-sre-agent-t4tsqgdvmn8ptpyfvmdzod.streamlit.app/)
 
 <p align="center">
   <img src="docs/dashboard_preview.png" alt="SherLock Dashboard — Incident Feed" width="90%"/>
