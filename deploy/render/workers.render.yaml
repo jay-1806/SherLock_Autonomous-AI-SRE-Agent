@@ -1,0 +1,50 @@
+# Render Blueprint — SherLock Background Workers & Cron Jobs
+services:
+  # Background Workers
+  - type: worker
+    name: investigation-consumer
+    env: python
+    region: ohio
+    plan: starter
+    buildCommand: "cd api && pip install ."
+    startCommand: "cd api && python -m src.workers.investigation_consumer"
+    autoDeploy: true
+    envVars:
+      - key: AWS_SQS_QUEUE_URL
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+
+  - type: worker
+    name: remediation-executor
+    env: python
+    region: ohio
+    plan: starter
+    buildCommand: "cd api && pip install ."
+    startCommand: "cd api && python -m src.workers.remediation_executor"
+    autoDeploy: true
+    envVars:
+      - key: AWS_S3_AUDIT_BUCKET
+        sync: false
+
+  # Cron Jobs
+  - type: cron
+    name: eval-metrics-sync
+    env: python
+    region: ohio
+    plan: starter
+    schedule: "*/15 * * * *"  # Every 15 minutes
+    buildCommand: "cd api && pip install ."
+    startCommand: "cd api && python -m src.cron.eval_sync"
+
+  - type: cron
+    name: incident-digest
+    env: python
+    region: ohio
+    plan: starter
+    schedule: "0 8 * * *"  # Daily at 08:00 UTC
+    buildCommand: "cd api && pip install ."
+    startCommand: "cd api && python -m src.cron.incident_digest"

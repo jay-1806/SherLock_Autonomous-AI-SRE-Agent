@@ -1,0 +1,16 @@
+source:
+  type: pagerduty
+  config:
+    api_token: "${PAGERDUTY_API_TOKEN}"
+    since: "2026-01-01T00:00:00Z"
+
+destination:
+  type: kafka
+  config:
+    bootstrap_servers: "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic_pattern: "telemetry.events"
+    compression_type: snappy
+
+sync_mode: incremental_append
+schedule:
+  cron: "0/2 * * * *"

@@ -1,0 +1,19 @@
+# Render Blueprint — SherLock Dashboard
+services:
+  - type: web
+    name: sre-dashboard
+    env: node
+    region: ohio
+    plan: starter
+    buildCommand: "cd dashboard && npm ci && npm run build"
+    startCommand: "cd dashboard && npm start"
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false  # Points to sre-api Render URL
+      - key: NODE_ENV
+        value: production
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetCPUPercent: 70

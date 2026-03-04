@@ -1,0 +1,46 @@
+# Graph Writer deployment for EKS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sre-graph-writer
+  namespace: sre-platform
+  labels:
+    app: sre-graph-writer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sre-graph-writer
+  template:
+    metadata:
+      labels:
+        app: sre-graph-writer
+    spec:
+      serviceAccountName: sre-graph-writer
+      containers:
+        - name: graph-writer
+          image: sre-graph-writer:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NEO4J_URI
+              valueFrom:
+                secretKeyRef:
+                  name: sre-secrets
+                  key: neo4j_uri
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sre-secrets
+                  key: neo4j_password
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                secretKeyRef:
+                  name: sre-secrets
+                  key: kafka_bootstrap_servers
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

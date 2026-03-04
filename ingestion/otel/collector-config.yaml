@@ -1,0 +1,63 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "kubernetes-pods"
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: "true"
+  jaeger:
+    protocols:
+      thrift_http:
+        endpoint: 0.0.0.0:14268
+
+processors:
+  batch:
+    timeout: 500ms
+    send_batch_size: 1000
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 15
+  attributes/pii_redact:
+    actions:
+      - key: user.id
+        action: hash
+      - key: http.request.header.authorization
+        action: delete
+      - key: db.statement
+        action: delete
+
+exporters:
+  kafka:
+    brokers:
+      - "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic: telemetry.traces
+    encoding: otlp_proto
+    producer:
+      compression: snappy
+      flush_max_messages: 500
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp, jaeger]
+      processors: [memory_limiter, attributes/pii_redact, batch]
+      exporters: [kafka]
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch]
+      exporters: [kafka]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/pii_redact, batch]
+      exporters: [kafka]

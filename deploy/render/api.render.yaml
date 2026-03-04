@@ -1,0 +1,30 @@
+# Render Blueprint — SherLock API Service
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: sre-api
+    env: python
+    region: ohio  # US-East — collocated with EKS cluster
+    plan: starter
+    buildCommand: "cd api && pip install ."
+    startCommand: "cd api && uvicorn src.app.main:app --host 0.0.0.0 --port 8000"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: API_PORT
+        value: 8000
+      - key: API_BASE_URL
+        sync: false  # Set per environment
+      - key: DEBUG
+        value: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: PAGERDUTY_API_KEY
+        sync: false
+    scaling:
+      minInstances: 1
+      maxInstances: 5
+      targetCPUPercent: 70

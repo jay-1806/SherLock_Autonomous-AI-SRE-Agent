@@ -1,0 +1,24 @@
+source:
+  type: aws-cloudwatch
+  config:
+    aws_region: us-east-1
+    log_group_names:
+      - /aws/eks/sre-platform
+      - /aws/lambda/sre-*
+    start_date: "2026-01-01T00:00:00Z"
+    credentials:
+      credentials_title: IAM Role
+      role_arn: arn:aws:iam::ACCOUNT_ID:role/airbyte-cloudwatch-reader
+
+destination:
+  type: kafka
+  config:
+    bootstrap_servers: "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic_pattern: "telemetry.{stream_name}"
+    compression_type: snappy
+    batch_size: 500
+    linger_ms: 100
+
+sync_mode: incremental_append
+schedule:
+  cron: "0/1 * * * *"

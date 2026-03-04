@@ -1,0 +1,294 @@
+[
+  {
+    "incident_id": "eval-001",
+    "alert_payload": {
+      "service_name": "checkout-api",
+      "severity": "P1",
+      "description": "Error rate spike to 15%"
+    },
+    "ground_truth_root_cause": "Deployment of checkout-api commit a3f2bc9 introduced database connection pool exhaustion",
+    "ground_truth_affected_services": ["checkout-api"],
+    "ground_truth_deployment_sha": "a3f2bc9",
+    "ground_truth_recommendations": ["Roll back to previous deployment"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-01T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-002",
+    "alert_payload": {
+      "service_name": "order-service",
+      "severity": "P2",
+      "description": "P99 latency exceeded 2s"
+    },
+    "ground_truth_root_cause": "Downstream payment-gateway service experienced timeout cascade; payment-gateway was overloaded",
+    "ground_truth_affected_services": ["order-service", "payment-gateway"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Scale payment-gateway", "Add circuit breaker"],
+    "difficulty": "medium",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-02T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-003",
+    "alert_payload": {
+      "service_name": "inventory-api",
+      "severity": "P1",
+      "description": "503 errors on /stock endpoint"
+    },
+    "ground_truth_root_cause": "Redis connection pool exhausted due to connection leak in v2.1.3 deployment",
+    "ground_truth_affected_services": ["inventory-api"],
+    "ground_truth_deployment_sha": "b2e8c1a",
+    "ground_truth_recommendations": ["Roll back to v2.1.2", "Fix connection leak"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-03T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-004",
+    "alert_payload": {
+      "service_name": "auth-service",
+      "severity": "P2",
+      "description": "JWT validation failures"
+    },
+    "ground_truth_root_cause": "Config drift: JWT secret rotated in Secrets Manager but auth-service not restarted; cached old secret",
+    "ground_truth_affected_services": ["auth-service"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Restart auth-service pods", "Align secret rotation with deployment"],
+    "difficulty": "medium",
+    "incident_category": "config-drift",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-04T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-005",
+    "alert_payload": {
+      "service_name": "search-api",
+      "severity": "P3",
+      "description": "High memory utilization 95%"
+    },
+    "ground_truth_root_cause": "Memory leak in Elasticsearch client; gradual OOM over 6 hours",
+    "ground_truth_affected_services": ["search-api"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Restart search-api", "Upgrade ES client library"],
+    "difficulty": "hard",
+    "incident_category": "resource-exhaustion",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-05T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-006",
+    "alert_payload": {
+      "service_name": "service-1",
+      "severity": "P2",
+      "description": "Intermittent 502 Bad Gateway"
+    },
+    "ground_truth_root_cause": "Upstream service-2 deployment introduced breaking API change; service-1 not yet updated",
+    "ground_truth_affected_services": ["service-1", "service-2"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Coordinate service-2 rollback", "Deploy service-1 compatibility fix"],
+    "difficulty": "medium",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-007",
+    "alert_payload": {
+      "service_name": "notify-worker",
+      "severity": "P2",
+      "description": "Email delivery backlog growing"
+    },
+    "ground_truth_root_cause": "AWS SES rate limit exceeded; notify-worker not backing off correctly",
+    "ground_truth_affected_services": ["notify-worker"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Request SES limit increase", "Implement exponential backoff"],
+    "difficulty": "medium",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-008",
+    "alert_payload": {
+      "service_name": "api-gateway",
+      "severity": "P1",
+      "description": "All downstream services returning 5xx"
+    },
+    "ground_truth_root_cause": "api-gateway deployment d4f1e2b introduced bug in routing config; all routes misrouted",
+    "ground_truth_affected_services": ["api-gateway"],
+    "ground_truth_deployment_sha": "d4f1e2b",
+    "ground_truth_recommendations": ["Immediate rollback of api-gateway"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-08T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-009",
+    "alert_payload": {"service_name": "recommendation-service", "severity": "P2", "description": "Cold start latency spike"},
+    "ground_truth_root_cause": "Lambda memory reduced from 1024MB to 256MB in deployment e5a9c3f; insufficient for model load",
+    "ground_truth_affected_services": ["recommendation-service"],
+    "ground_truth_deployment_sha": "e5a9c3f",
+    "ground_truth_recommendations": ["Restore Lambda memory to 1024MB", "Add provisioned concurrency"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-09T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-010",
+    "alert_payload": {"service_name": "user-profile-api", "severity": "P1", "description": "Cascading timeouts"},
+    "ground_truth_root_cause": "DynamoDB table throttling; on-demand table hit burst limit during traffic spike",
+    "ground_truth_affected_services": ["user-profile-api"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Switch to provisioned capacity", "Add retry with backoff"],
+    "difficulty": "medium",
+    "incident_category": "resource-exhaustion",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-10T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-011",
+    "alert_payload": {"service_name": "analytics-pipeline", "severity": "P2", "description": "S3 write failures"},
+    "ground_truth_root_cause": "S3 bucket policy changed; pipeline IAM role lost PutObject permission",
+    "ground_truth_affected_services": ["analytics-pipeline"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Restore S3 PutObject in bucket policy", "Audit IAM changes"],
+    "difficulty": "medium",
+    "incident_category": "config-drift",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-11T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-012",
+    "alert_payload": {"service_name": "catalog-api", "severity": "P1", "description": "High CPU 98%"},
+    "ground_truth_root_cause": "Deployment f7b2d1e introduced inefficient N+1 query in product listing; CPU saturated",
+    "ground_truth_affected_services": ["catalog-api"],
+    "ground_truth_deployment_sha": "f7b2d1e",
+    "ground_truth_recommendations": ["Roll back f7b2d1e", "Optimize product listing query"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-12T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-013",
+    "alert_payload": {"service_name": "shipping-service", "severity": "P2", "description": "FedEx API timeouts"},
+    "ground_truth_root_cause": "FedEx API outage; external carrier returning 503; no circuit breaker",
+    "ground_truth_affected_services": ["shipping-service"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Add circuit breaker for FedEx", "Implement fallback to USPS"],
+    "difficulty": "medium",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-13T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-014",
+    "alert_payload": {"service_name": "session-manager", "severity": "P1", "description": "Session invalidation storm"},
+    "ground_truth_root_cause": "Redis cluster failover; session-manager cached stale cluster topology; reconnection storm",
+    "ground_truth_affected_services": ["session-manager"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Restart session-manager pods", "Upgrade Redis client with failover handling"],
+    "difficulty": "hard",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-14T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-015",
+    "alert_payload": {"service_name": "billing-worker", "severity": "P2", "description": "Stripe webhook failures"},
+    "ground_truth_root_cause": "Stripe API version upgrade; webhook signature validation changed; billing-worker using old SDK",
+    "ground_truth_affected_services": ["billing-worker"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Upgrade Stripe SDK", "Pin Stripe API version"],
+    "difficulty": "medium",
+    "incident_category": "dependency-failure",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-15T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-016",
+    "alert_payload": {"service_name": "cdn-origin", "severity": "P1", "description": "Cache hit ratio dropped 60%"},
+    "ground_truth_root_cause": "CloudFront cache behavior config changed; TTL set to 0; origin hit for every request",
+    "ground_truth_affected_services": ["cdn-origin"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Restore CloudFront TTL", "Roll back CDN config change"],
+    "difficulty": "easy",
+    "incident_category": "config-drift",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-16T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-017",
+    "alert_payload": {"service_name": "ml-inference", "severity": "P1", "description": "Model inference timeout"},
+    "ground_truth_root_cause": "SageMaker endpoint scaled to 0; first request cold start exceeded 60s timeout",
+    "ground_truth_affected_services": ["ml-inference"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Enable minimum instance count 1", "Increase client timeout"],
+    "difficulty": "medium",
+    "incident_category": "resource-exhaustion",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-17T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-018",
+    "alert_payload": {"service_name": "audit-logger", "severity": "P2", "description": "Log ingestion lag 30min"},
+    "ground_truth_root_cause": "Kinesis shard count reduced; throughput exceeded new limit; backlog built",
+    "ground_truth_affected_services": ["audit-logger"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Add Kinesis shards", "Scale consumer workers"],
+    "difficulty": "medium",
+    "incident_category": "resource-exhaustion",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-18T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-019",
+    "alert_payload": {"service_name": "rate-limiter", "severity": "P1", "description": "All requests blocked"},
+    "ground_truth_root_cause": "Rate limiter deployment g8c4h2a introduced bug; default limit set to 0 per minute",
+    "ground_truth_affected_services": ["rate-limiter"],
+    "ground_truth_deployment_sha": "g8c4h2a",
+    "ground_truth_recommendations": ["Immediate rollback", "Fix default limit config"],
+    "difficulty": "easy",
+    "incident_category": "deploy-induced",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-19T00:00:00Z",
+    "notes": null
+  },
+  {
+    "incident_id": "eval-020",
+    "alert_payload": {"service_name": "health-check", "severity": "P3", "description": "False positive cascade"},
+    "ground_truth_root_cause": "Health check endpoint moved; load balancer target group still pointing to old path /healthz",
+    "ground_truth_affected_services": ["health-check"],
+    "ground_truth_deployment_sha": null,
+    "ground_truth_recommendations": ["Update target group to /ready", "Or add /healthz alias"],
+    "difficulty": "easy",
+    "incident_category": "config-drift",
+    "labeled_by": "sre-sme",
+    "labeled_at": "2026-02-20T00:00:00Z",
+    "notes": null
+  }
+]

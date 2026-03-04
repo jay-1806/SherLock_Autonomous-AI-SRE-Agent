@@ -1,0 +1,19 @@
+source:
+  type: aws-xray
+  config:
+    aws_region: us-east-1
+    credentials:
+      credentials_title: IAM Role
+      role_arn: arn:aws:iam::ACCOUNT_ID:role/airbyte-xray-reader
+
+destination:
+  type: kafka
+  config:
+    bootstrap_servers: "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic_pattern: "telemetry.traces"
+    compression_type: snappy
+    batch_size: 500
+
+sync_mode: incremental_append
+schedule:
+  cron: "*/5 * * * *"

@@ -1,0 +1,115 @@
+# OTel Collector DaemonSet for EKS
+# Deploys collector on every node to receive OTLP, Prometheus, Jaeger
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: otel-collector
+  namespace: sre-platform
+  labels:
+    app: otel-collector
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      serviceAccountName: sre-otel-collector
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.96.0
+          args:
+            - "--config=/etc/otel/collector-config.yaml"
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                secretKeyRef:
+                  name: sre-secrets
+                  key: kafka_bootstrap_servers
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+          ports:
+            - containerPort: 4317  # OTLP gRPC
+            - containerPort: 4318  # OTLP HTTP
+            - containerPort: 14268 # Jaeger
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: sre-platform
+data:
+  collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: kubernetes-pods
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: "true"
+      jaeger:
+        protocols:
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+    processors:
+      batch:
+        timeout: 500ms
+        send_batch_size: 1000
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+      attributes/pii_redact:
+        actions:
+          - key: user.id
+            action: hash
+          - key: http.request.header.authorization
+            action: delete
+          - key: db.statement
+            action: delete
+    exporters:
+      kafka:
+        protocol_version: 3.0.0
+        brokers:
+          - "${KAFKA_BOOTSTRAP_SERVERS}"
+        topic: telemetry.traces
+        encoding: otlp_proto
+      logging:
+        verbosity: normal
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [memory_limiter, attributes/pii_redact, batch]
+          exporters: [kafka, logging]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, batch]
+          exporters: [kafka, logging]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, attributes/pii_redact, batch]
+          exporters: [kafka, logging]
