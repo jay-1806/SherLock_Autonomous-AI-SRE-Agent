@@ -1,10 +1,5 @@
-<p align="center">
-  <img src="docs/banner.png" alt="SherLock — Autonomous AI-Powered SRE Agent" width="100%"/>
-</p>
+<h1 align="center">🔍 SherLock — Autonomous AI-Powered SRE Agent</h1>
 
-<p align="center">
-  <strong>An autonomous AI-powered Site Reliability Engineering agent that investigates production incidents, identifies root causes, and orchestrates remediation — in minutes, not hours.</strong>
-</p>
 
 <p align="center">
   <a href="https://jay-1806-sherlock-autonomous-ai-sre-ag-streamlit-app-1dkptw.streamlit.app"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"/></a>
