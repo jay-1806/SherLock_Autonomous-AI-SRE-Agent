@@ -1,5 +1,5 @@
 /**
- * API client for SherLock backend
+ * API client — defaults to offline demo data for presentations
  */
 
 import {
@@ -13,8 +13,34 @@ import {
   FeedbackEntry,
   GraphData,
 } from './types';
+import {
+  isDemoMode,
+  getDemoInvestigationSummaries,
+  getDemoInvestigationById,
+  DEMO_SERVICES,
+  DEMO_REMEDIATION_CATALOG,
+  DEMO_EXECUTIONS,
+  DEMO_EVAL_SUMMARY,
+  DEMO_FEEDBACK,
+} from './demo-data';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const FETCH_TIMEOUT_MS = 1500;
+
+async function fetchApi<T>(path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(response.statusText);
+    return response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // ─── Investigations ──────────────────────────────────────────────────────────
 
@@ -23,66 +49,89 @@ export async function getInvestigations(params?: {
   severity?: string;
   service?: string;
 }): Promise<InvestigationSummary[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.status) searchParams.set('status', params.status);
-  if (params?.severity) searchParams.set('severity', params.severity);
-  if (params?.service) searchParams.set('service', params.service);
-
-  const query = searchParams.toString();
-  const url = `${API_URL}/investigations${query ? `?${query}` : ''}`;
-
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch investigations: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) {
+    let list = getDemoInvestigationSummaries();
+    if (params?.status) list = list.filter((i) => i.status === params.status);
+    if (params?.severity) list = list.filter((i) => i.severity === params.severity);
+    if (params?.service) list = list.filter((i) => i.service === params.service);
+    return list;
+  }
+  try {
+    const searchParams = new URLSearchParams();
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.severity) searchParams.set('severity', params.severity);
+    if (params?.service) searchParams.set('service', params.service);
+    const query = searchParams.toString();
+    return await fetchApi<InvestigationSummary[]>(`/investigations${query ? `?${query}` : ''}`);
+  } catch {
+    return getDemoInvestigationSummaries();
+  }
 }
 
 export async function getInvestigation(id: string): Promise<Investigation> {
-  const response = await fetch(`${API_URL}/investigations/${id}`, { cache: 'no-store' });
-  if (!response.ok) {
-    if (response.status === 404) throw new Error(`Investigation ${id} not found`);
-    throw new Error(`Failed to fetch investigation: ${response.statusText}`);
+  if (isDemoMode()) {
+    const inv = getDemoInvestigationById(id);
+    if (!inv) throw new Error(`Investigation ${id} not found`);
+    return inv;
   }
-  return response.json();
+  try {
+    return await fetchApi<Investigation>(`/investigations/${id}`);
+  } catch (e) {
+    const inv = getDemoInvestigationById(id);
+    if (inv) return inv;
+    throw e;
+  }
 }
 
 export async function getInvestigationGraph(id: string): Promise<GraphData> {
-  const response = await fetch(`${API_URL}/investigations/${id}/graph`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch graph: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) {
+    return { nodes: [], edges: [] };
+  }
+  return fetchApi<GraphData>(`/investigations/${id}/graph`);
 }
 
 // ─── Services ────────────────────────────────────────────────────────────────
 
 export async function getServices(): Promise<ServiceSummary[]> {
-  const response = await fetch(`${API_URL}/services`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch services: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) return DEMO_SERVICES;
+  try {
+    return await fetchApi<ServiceSummary[]>('/services');
+  } catch {
+    return DEMO_SERVICES;
+  }
 }
 
 export async function getService(name: string): Promise<ServiceDetail> {
-  const response = await fetch(`${API_URL}/services/${name}`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch service: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) {
+    const svc = DEMO_SERVICES.find((s) => s.name === name);
+    if (!svc) throw new Error('Service not found');
+    return { ...svc, dependencies: [], region: 'us-east-1', environment: 'production', incident_history: [] };
+  }
+  return fetchApi<ServiceDetail>(`/services/${name}`);
 }
 
 export async function getServiceHistory(name: string) {
-  const response = await fetch(`${API_URL}/services/${name}/history`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch service history: ${response.statusText}`);
-  return response.json();
+  return fetchApi(`/services/${name}/history`);
 }
 
 // ─── Remediation ─────────────────────────────────────────────────────────────
 
 export async function getRemediationCatalog(): Promise<RemediationAction[]> {
-  const response = await fetch(`${API_URL}/remediation/catalog`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch catalog: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) return DEMO_REMEDIATION_CATALOG;
+  try {
+    return await fetchApi<RemediationAction[]>('/remediation/catalog');
+  } catch {
+    return DEMO_REMEDIATION_CATALOG;
+  }
 }
 
 export async function getExecutionLog(): Promise<ExecutionLogEntry[]> {
-  const response = await fetch(`${API_URL}/remediation/executions`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch executions: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) return DEMO_EXECUTIONS;
+  try {
+    return await fetchApi<ExecutionLogEntry[]>('/remediation/executions');
+  } catch {
+    return DEMO_EXECUTIONS;
+  }
 }
 
 export async function executeRemediation(actionId: string, investigationId: string, dryRun = false) {
@@ -101,17 +150,23 @@ export async function executeRemediation(actionId: string, investigationId: stri
 // ─── Evals & KPIs ────────────────────────────────────────────────────────────
 
 export async function getEvalSummary(): Promise<EvalSummary> {
-  const response = await fetch(`${API_URL}/evals/summary`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch eval summary: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) return DEMO_EVAL_SUMMARY;
+  try {
+    return await fetchApi<EvalSummary>('/evals/summary');
+  } catch {
+    return DEMO_EVAL_SUMMARY;
+  }
 }
 
 // ─── Feedback ────────────────────────────────────────────────────────────────
 
 export async function getFeedback(): Promise<FeedbackEntry[]> {
-  const response = await fetch(`${API_URL}/feedback`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Failed to fetch feedback: ${response.statusText}`);
-  return response.json();
+  if (isDemoMode()) return DEMO_FEEDBACK;
+  try {
+    return await fetchApi<FeedbackEntry[]>('/feedback');
+  } catch {
+    return DEMO_FEEDBACK;
+  }
 }
 
 export async function submitFeedback(investigationId: string, rating: string, comment?: string) {
@@ -124,10 +179,7 @@ export async function submitFeedback(investigationId: string, rating: string, co
   return response.json();
 }
 
-// ─── Health ──────────────────────────────────────────────────────────────────
-
 export async function checkHealth() {
-  const response = await fetch(`${API_URL}/health`, { cache: 'no-store' });
-  if (!response.ok) throw new Error('API health check failed');
-  return response.json();
+  if (isDemoMode()) return { status: 'ok', mode: 'demo' };
+  return fetchApi('/health');
 }

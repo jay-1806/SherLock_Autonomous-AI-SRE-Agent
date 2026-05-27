@@ -27,7 +27,7 @@ function SeverityBadge({ severity }: { severity: string }) {
     low: '○', medium: '◑', high: '◉', critical: '●',
   };
   return (
-    <span className={`px-2:5 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${styles[severity] || ''}`}>
+    <span className={`px-2.5 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${styles[severity] || ''}`}>
       <span>{icons[severity]}</span> {severity}
     </span>
   );
@@ -76,52 +76,52 @@ function InvestigationCard({ investigation }: { investigation: InvestigationSumm
 }
 
 export default async function HomePage() {
-  let investigations: InvestigationSummary[] = [];
-  let error: string | null = null;
-
-  try {
-    investigations = await getInvestigations();
-  } catch (e) {
-    error = e instanceof Error ? e.message : 'Failed to load investigations';
-  }
+  const investigations = await getInvestigations();
 
   const active = investigations.filter(i => i.status === 'open' || i.status === 'in_progress');
   const resolved = investigations.filter(i => i.status === 'resolved' || i.status === 'closed');
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Incident Feed</h1>
-        <p className="mt-2 text-gray-500">
+      <div className="mb-8 space-y-6">
+        <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-transparent p-6">
+          <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300 mb-3 block">Autonomous SRE Agent</span>
+          <h1 className="text-3xl font-bold text-white">SherLock Incident Command Center</h1>
+          <p className="mt-2 text-gray-300 max-w-3xl">
+            AI-powered investigation feed with confidence-scored RCA, blast radius, and remediation recommendations.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-5">
+            <Link href="/investigations/inv-002" className="px-3 py-2 text-sm rounded-lg bg-red-500/20 text-red-300 border border-red-400/30 hover:bg-red-500/30 transition-colors">
+              Open critical incident →
+            </Link>
+            <Link href="/kpis" className="px-3 py-2 text-sm rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors">
+              View KPIs
+            </Link>
+            <Link href="/remediation" className="px-3 py-2 text-sm rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-500/30 transition-colors">
+              Remediation center
+            </Link>
+          </div>
+        </div>
+
+        <p className="text-gray-500">
           Active and recent investigations • {investigations.length} total
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
-          <p className="text-red-400 font-medium">⚠ {error}</p>
-          <p className="text-red-400/60 text-sm mt-1">Make sure the API server is running on http://localhost:8000</p>
-        </div>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Active', value: active.length, color: 'text-amber-400' },
+          { label: 'Critical', value: investigations.filter(i => i.severity === 'critical').length, color: 'text-red-400' },
+          { label: 'Resolved', value: resolved.length, color: 'text-emerald-400' },
+          { label: 'Avg Confidence', value: investigations.length ? Math.round(investigations.reduce((a, i) => a + (i.confidence || 0), 0) / investigations.length * 100) + '%' : 'N/A', color: 'text-blue-400' },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-gray-900/85 backdrop-blur rounded-xl border border-gray-800 p-4">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</p>
+            <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
 
-      {/* Stats bar */}
-      {!error && (
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Active', value: active.length, color: 'text-amber-400' },
-            { label: 'Critical', value: investigations.filter(i => i.severity === 'critical').length, color: 'text-red-400' },
-            { label: 'Resolved Today', value: resolved.length, color: 'text-emerald-400' },
-            { label: 'Avg Confidence', value: investigations.length ? Math.round(investigations.reduce((a, i) => a + (i.confidence || 0), 0) / investigations.length * 100) + '%' : 'N/A', color: 'text-blue-400' },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</p>
-              <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Active Investigations */}
       {active.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -136,7 +136,6 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* Resolved Investigations */}
       {resolved.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-400 mb-4">Resolved</h2>

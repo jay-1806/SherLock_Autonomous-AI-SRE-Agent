@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { isDemoMode } from '@/lib/demo-data';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -20,14 +21,21 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const now = new Date().toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const demo = isDemoMode();
+
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen bg-gray-950">
+        <div className="min-h-screen bg-gray-950 app-bg">
           {/* Top Navigation */}
-          <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+          <nav className="bg-gray-900/90 backdrop-blur border-b border-gray-800 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between h-16">
+              <div className="flex justify-between h-16 gap-3">
                 <div className="flex items-center">
                   <Link href="/" className="text-xl font-bold text-emerald-400 flex items-center gap-2">
                     <span className="text-2xl">🔍</span>
@@ -37,7 +45,7 @@ export default function RootLayout({
                     </span>
                   </Link>
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="hidden md:flex items-center space-x-1">
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -52,8 +60,9 @@ export default function RootLayout({
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                    API Connected
+                    {demo ? 'Demo mode' : 'API connected'}
                   </div>
+                  <span className="hidden lg:inline text-xs text-gray-600">{now}</span>
                 </div>
               </div>
             </div>
